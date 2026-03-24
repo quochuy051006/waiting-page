@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Ticket Studio | Waiting Room</title>
+    <style>
+        :root {
+            --accent-color: #00cec9;
+            --bg-dark: #0f0f12;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            font-family: 'Inter', -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Queue Information Section */
+        .status-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .queue-number {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--accent-color);
+            text-shadow: 0 0 20px rgba(0, 206, 201, 0.4);
+        }
+
+        /* The Ticket Canvas */
+        .ticket-container {
+            position: relative;
+            width: 500px;
+            height: 260px;
+            background: #1e1e24;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Layer 1: The User Image */
+        #idol-preview {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            z-index: 1;
+            transition: transform 0.1s ease-out;
+            filter: brightness(0.9) contrast(1.1);
+        }
+
+        /* Layer 2: Glassmorphism Overlay */
+        .ticket-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background: linear-gradient(
+                135deg, 
+                rgba(0, 0, 0, 0.7) 0%, 
+                transparent 60%, 
+                rgba(255, 255, 255, 0.1) 100%
+            );
+            pointer-events: none;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+        }
+
+        .event-title {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .user-tag {
+            background: var(--accent-color);
+            color: #000;
+            display: inline-block;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        /* Controls Section */
+        .editor-panel {
+            margin-top: 30px;
+            background: var(--glass-bg);
+            padding: 25px;
+            border-radius: 15px;
+            width: 450px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-row {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        input[type="range"] {
+            width: 65%;
+            cursor: pointer;
+        }
+
+        .file-upload {
+            background: #fff;
+            color: #000;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="status-header">
+        <h1>Your spot is secured!</h1>
+        <div class="queue-number" id="queuePos">#1,402</div>
+        <p>While you wait, design your own <strong>exclusive</strong> digital pass.</p>
+    </div>
+
+    <div class="ticket-container" id="ticketWidget">
+        <img id="idol-preview" src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=500&q=80" alt="Preview">
+        
+        <div class="ticket-overlay">
+            <div>
+                <h2 class="event-title">WORLD TOUR 2026</h2>
+                <div class="user-tag">VIP EARLY BIRD</div>
+            </div>
+            <div style="font-size: 0.9rem; opacity: 0.8;">
+                Verified Fan Access<br>
+                <span style="font-family: monospace;">UUID: 882-991-KPOP</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="editor-panel">
+        <input type="file" id="imageLoader" class="file-upload" accept="image/*">
+        
+        <div class="control-row">
+            <label>Zoom</label>
+            <input type="range" id="zoomScale" min="0.5" max="2" step="0.01" value="1">
+        </div>
+
+        <div class="control-row">
+            <label>Vertical Position</label>
+            <input type="range" id="vPos" min="-50" max="50" step="1" value="0">
+        </div>
+
+        <button onclick="alert('Ticket Saved!')" style="width:100%; padding:12px; border:none; border-radius:5px; background:var(--accent-color); color:#000; font-weight:bold; cursor:pointer;">
+            Download Digital Pass
+        </button>
+    </div>
+
+    <script>
+        const imageLoader = document.getElementById('imageLoader');
+        const preview = document.getElementById('idol-preview');
+        const zoomScale = document.getElementById('zoomScale');
+        const vPos = document.getElementById('vPos');
+
+        // Handle Image Upload
+        imageLoader.addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                preview.src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        // Update Position & Scale
+        function updateTransform() {
+            preview.style.transform = `translate(-50%, calc(-50% + ${vPos.value}px)) scale(${zoomScale.value})`;
+        }
+
+        zoomScale.addEventListener('input', updateTransform);
+        vPos.addEventListener('input', updateTransform);
+
+        // Simulation: Countdown Queue
+        let currentPos = 1402;
+        setInterval(() => {
+            if (currentPos > 1) {
+                currentPos--;
+                document.getElementById('queuePos').innerText = '#' + currentPos.toLocaleString();
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
