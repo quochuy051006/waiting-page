@@ -6,13 +6,17 @@
     <title>VIP Ticket Studio | Waiting Room</title>
     <style>
         :root {
-            --accent-color: #00cec9;
-            --bg-dark: #0f0f12;
-            --glass-bg: rgba(255, 255, 255, 0.1);
+            --accent-color: #7FFF00; /* Chartreuse brand */
+            --bg-dark: #66CC00; /* darker chartreuse-green background */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(127,255,0,0.3);
+            --neon-glow: rgba(127,255,0,0.4);
         }
 
         body {
             background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 8% 8%, rgba(127,255,0,0.05) 0%, transparent 20%),
+                              radial-gradient(circle at 92% 92%, rgba(127,255,0,0.05) 0%, transparent 20%);
             color: #ffffff;
             font-family: 'Inter', -apple-system, sans-serif;
             display: flex;
@@ -33,7 +37,7 @@
             font-size: 4rem;
             font-weight: 800;
             color: var(--accent-color);
-            text-shadow: 0 0 20px rgba(0, 206, 201, 0.4);
+            text-shadow: 0 0 20px var(--neon-glow);
         }
 
         /* Mini horizontal progress tracker */
@@ -64,8 +68,8 @@
             top: 0;
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, rgba(0,236,201,0.9), rgba(0,200,255,0.9));
-            box-shadow: 0 6px 20px rgba(0,236,201,0.08);
+            background: linear-gradient(90deg, rgba(127,255,0,0.95), rgba(127,255,0,0.95));
+            box-shadow: 0 6px 24px rgba(127,255,0,0.08);
             transition: all 1s ease-in-out;
         }
         .progress-icon {
@@ -77,6 +81,7 @@
             font-size: 18px;
             z-index: 3;
             text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            box-shadow: 0 0 15px var(--neon-glow);
         }
         .progress-percent {
             width:120px;
@@ -84,18 +89,25 @@
             opacity:0.95;
             font-weight:700;
             color: var(--accent-color);
+            text-shadow: 0 0 8px rgba(127,255,0,0.12);
+        }
+        .stage-label span:first-child {
+            color: var(--accent-color);
+            text-shadow: 0 0 12px var(--neon-glow);
+            font-weight:700;
         }
 
-        /* The Ticket Canvas */
+        /* The Ticket Canvas (Neon Glassmorphism) */
         .ticket-container {
             position: relative;
             width: 500px;
             height: 260px;
-            background: #1e1e24;
+            background: rgba(255,255,255,0.03);
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(8px) saturate(120%);
         }
 
         /* Template styles */
@@ -125,9 +137,9 @@
             z-index: 2;
             background: linear-gradient(
                 135deg, 
-                rgba(0, 0, 0, 0.7) 0%, 
+                rgba(0, 0, 0, 0.582) 0%, 
                 transparent 60%, 
-                rgba(255, 255, 255, 0.1) 100%
+                rgba(255, 255, 255, 0.733) 100%
             );
             pointer-events: none;
             padding: 30px;
@@ -144,6 +156,8 @@
             text-transform: uppercase;
             font-weight: 900;
             margin: 0;
+            color: #fff;
+            text-shadow: 0 0 6px rgba(127,255,0,0.08);
         }
 
         .user-tag {
@@ -157,14 +171,16 @@
             margin-top: 10px;
         }
 
-        /* Controls Section */
+        /* Controls Section (Neon Glassmorphism) */
         .editor-panel {
             margin-top: 30px;
             background: var(--glass-bg);
             padding: 25px;
             border-radius: 15px;
             width: 450px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px) saturate(120%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
         }
 
         .control-row {
@@ -180,13 +196,24 @@
         }
 
         .file-upload {
-            background: #fff;
-            color: #000;
+            background: rgba(255,255,255,0.04);
+            color: #fff;
             padding: 10px;
             border-radius: 5px;
             width: 100%;
             margin-bottom: 15px;
             cursor: pointer;
+            border: 1px solid rgba(127,255,0,0.08);
+        }
+
+        /* Buttons and active controls glow */
+        button, #downloadBtn, #fitBtn {
+            box-shadow: 0 0 0 rgba(127,255,0,0);
+            transition: box-shadow 0.2s ease, transform 0.12s ease;
+        }
+        button:hover, #downloadBtn:hover, #fitBtn:hover {
+            box-shadow: 0 0 15px var(--neon-glow);
+            transform: translateY(-1px);
         }
 
     </style>
@@ -202,7 +229,7 @@
                 <div class="progress-fill" id="progressFill"></div>
                 <div class="progress-icon" id="progressIcon">🎫</div>
             </div>
-            <div class="progress-label"><span>Stage</span><span class="label-icon">🎭</span></div>
+            <div class="progress-label stage-label"><span>Stage</span><span class="label-icon">🎭</span></div>
             <div class="progress-percent" id="progressText">0% to the Stage</div>
         </div>
         <p>While you wait, design your own <strong>exclusive</strong> digital pass.</p>
