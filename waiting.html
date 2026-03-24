@@ -48,6 +48,23 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        /* Template styles */
+        .ticket-container.template-1 { border-radius: 20px; }
+        .ticket-container.template-2 { border-radius: 6px; box-shadow: 0 35px 60px -20px rgba(0,0,0,0.6); }
+        .ticket-container.template-3 { border-radius: 40px; border: 2px dashed rgba(255,255,255,0.08); }
+
+        /* Frame overlay image */
+        #frame-overlay {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 4;
+            pointer-events: none;
+            mix-blend-mode: normal;
+        }
+
         /* Layer 1: The User Image */
         #idol-preview {
             position: absolute;
@@ -75,7 +92,7 @@
             pointer-events: none;
             padding: 30px;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             justify-content: space-between;
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
@@ -146,57 +163,194 @@
         <img id="idol-preview" src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=500&q=80" alt="Preview">
         
         <div class="ticket-overlay">
-            <div>
-                <h2 class="event-title">WORLD TOUR 2026</h2>
-                <div class="user-tag">VIP EARLY BIRD</div>
+            <div class="ticket-main" style="flex:1;">
+                <h2 class="event-title" id="eventTitle">WORLD TOUR 2026</h2>
+                <div class="user-tag" id="passTag">VIP EARLY BIRD</div>
             </div>
-            <div style="font-size: 0.9rem; opacity: 0.8;">
-                Verified Fan Access<br>
-                <span style="font-family: monospace;">UUID: 882-991-KPOP</span>
+            <div class="ticket-side" id="ticketSide" style="width:180px; text-align:right;">
+                <div id="eventWhen" style="font-size:0.95rem; opacity:0.95;">Sat, Jan 10 · 7:00 PM</div>
+                <div id="eventWhere" style="font-size:0.85rem; opacity:0.8; margin-top:8px;">Seoul Arena</div>
+                <div style="font-size:0.8rem; opacity:0.7; margin-top:10px;"><span style="font-family: monospace;">UUID: 882-991-KPOP</span></div>
             </div>
         </div>
+        <img id="frame-overlay" src="" alt="frame overlay" />
     </div>
 
     <div class="editor-panel">
+        <label>Background Image</label>
         <input type="file" id="imageLoader" class="file-upload" accept="image/*">
-        
+
+        <label>Frame Image (optional)</label>
+        <input type="file" id="frameLoader" class="file-upload" accept="image/*">
+
+        <div class="control-row">
+            <label>Event Title</label>
+            <input type="text" id="titleInput" placeholder="Event name" style="flex:1; margin-left:10px;">
+        </div>
+
+        <div class="control-row">
+            <label>When</label>
+            <input type="datetime-local" id="whenInput" style="flex:1; margin-left:10px;">
+        </div>
+
+        <div class="control-row">
+            <label>Where</label>
+            <input type="text" id="whereInput" placeholder="Venue" style="flex:1; margin-left:10px;">
+        </div>
+
+        <div class="control-row">
+            <label>Info Position</label>
+            <select id="infoPos" style="flex:1; margin-left:10px;">
+                <option value="right">Right</option>
+                <option value="left">Left</option>
+            </select>
+        </div>
+
+        <div class="control-row">
+            <label>Template</label>
+            <select id="templateSelect" style="flex:1; margin-left:10px;">
+                <option value="template-1">Classic</option>
+                <option value="template-2">Modern</option>
+                <option value="template-3">Perforated</option>
+            </select>
+        </div>
+
+        <div class="control-row">
+            <label>Accent Color</label>
+            <input type="color" id="accentColor" value="#00cec9" style="margin-left:10px;">
+        </div>
+
         <div class="control-row">
             <label>Zoom</label>
-            <input type="range" id="zoomScale" min="0.5" max="2" step="0.01" value="1">
+            <input type="range" id="zoomScale" min="0.5" max="2" step="0.01" value="1" style="flex:1; margin-left:10px;">
         </div>
 
         <div class="control-row">
-            <label>Vertical Position</label>
-            <input type="range" id="vPos" min="-50" max="50" step="1" value="0">
+            <label>Vertical</label>
+            <input type="range" id="vPos" min="-80" max="80" step="1" value="0" style="flex:1; margin-left:10px;">
         </div>
 
-        <button onclick="alert('Ticket Saved!')" style="width:100%; padding:12px; border:none; border-radius:5px; background:var(--accent-color); color:#000; font-weight:bold; cursor:pointer;">
+        <button id="downloadBtn" style="width:100%; padding:12px; border:none; border-radius:5px; background:var(--accent-color); color:#000; font-weight:bold; cursor:pointer;">
             Download Digital Pass
         </button>
     </div>
 
     <script>
+        // Elements
         const imageLoader = document.getElementById('imageLoader');
+        const frameLoader = document.getElementById('frameLoader');
         const preview = document.getElementById('idol-preview');
+        const frameOverlay = document.getElementById('frame-overlay');
         const zoomScale = document.getElementById('zoomScale');
         const vPos = document.getElementById('vPos');
+        const titleInput = document.getElementById('titleInput');
+        const whenInput = document.getElementById('whenInput');
+        const whereInput = document.getElementById('whereInput');
+        const infoPos = document.getElementById('infoPos');
+        const templateSelect = document.getElementById('templateSelect');
+        const accentColor = document.getElementById('accentColor');
+        const eventTitle = document.getElementById('eventTitle');
+        const eventWhen = document.getElementById('eventWhen');
+        const eventWhere = document.getElementById('eventWhere');
+        const ticketWidget = document.getElementById('ticketWidget');
+        const ticketOverlay = document.querySelector('.ticket-overlay');
+        const downloadBtn = document.getElementById('downloadBtn');
 
-        // Handle Image Upload
+        // Handle Background Image Upload
         imageLoader.addEventListener('change', function(e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
             const reader = new FileReader();
             reader.onload = function(event) {
                 preview.src = event.target.result;
             }
-            reader.readAsDataURL(e.target.files[0]);
+            reader.readAsDataURL(file);
+        });
+
+        // Handle Frame Upload
+        frameLoader.addEventListener('change', function(e){
+            const file = e.target.files && e.target.files[0];
+            if (!file) { frameOverlay.src = ''; return; }
+            const reader = new FileReader();
+            reader.onload = function(ev){ frameOverlay.src = ev.target.result; }
+            reader.readAsDataURL(file);
         });
 
         // Update Position & Scale
         function updateTransform() {
             preview.style.transform = `translate(-50%, calc(-50% + ${vPos.value}px)) scale(${zoomScale.value})`;
         }
-
         zoomScale.addEventListener('input', updateTransform);
         vPos.addEventListener('input', updateTransform);
+
+        // Title/When/Where bindings
+        titleInput.addEventListener('input', () => { eventTitle.textContent = titleInput.value || 'WORLD TOUR 2026'; });
+        whereInput.addEventListener('input', () => { eventWhere.textContent = whereInput.value || 'Seoul Arena'; });
+        whenInput.addEventListener('input', () => {
+            if (!whenInput.value) return eventWhen.textContent = 'Sat, Jan 10 · 7:00 PM';
+            const d = new Date(whenInput.value);
+            if (isNaN(d)) return;
+            eventWhen.textContent = d.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        });
+
+        // Info position (left / right)
+        infoPos.addEventListener('change', () => {
+            ticketOverlay.style.flexDirection = infoPos.value === 'left' ? 'row-reverse' : 'row';
+            document.getElementById('ticketSide').style.textAlign = infoPos.value === 'left' ? 'left' : 'right';
+        });
+
+        // Template selector
+        templateSelect.addEventListener('change', () => {
+            ticketWidget.classList.remove('template-1','template-2','template-3');
+            ticketWidget.classList.add(templateSelect.value);
+        });
+
+        // Accent color
+        accentColor.addEventListener('input', () => {
+            document.documentElement.style.setProperty('--accent-color', accentColor.value);
+            document.querySelectorAll('.user-tag').forEach(el => el.style.background = accentColor.value);
+            downloadBtn.style.background = accentColor.value;
+        });
+
+        // Initial apply of accent color
+        document.documentElement.style.setProperty('--accent-color', accentColor.value);
+
+        // Download: render the ticket widget as PNG via SVG foreignObject
+        downloadBtn.addEventListener('click', async () => {
+            const node = ticketWidget;
+            const rect = node.getBoundingClientRect();
+            // Serialize node
+            const cloned = node.cloneNode(true);
+            // Inline computed styles for fonts/backgrounds to improve rendering
+            const serializer = new XMLSerializer();
+            const wrapper = document.createElement('div');
+            wrapper.appendChild(cloned);
+            const serialized = serializer.serializeToString(wrapper);
+
+            const svg = `<?xml version="1.0" encoding="utf-8"?>\n<svg xmlns='http://www.w3.org/2000/svg' width='${rect.width}' height='${rect.height}'>` +
+                `<foreignObject width='100%' height='100%'>${serialized}</foreignObject></svg>`;
+
+            const blob = new Blob([svg], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = rect.width * 2;
+                canvas.height = rect.height * 2;
+                const ctx = canvas.getContext('2d');
+                // fill background
+                ctx.fillStyle = getComputedStyle(document.body).backgroundColor || '#111';
+                ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                URL.revokeObjectURL(url);
+                const link = document.createElement('a');
+                link.download = 'ticket.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+            img.onerror = function(){ URL.revokeObjectURL(url); alert('Failed to render image for download in this browser.'); };
+            img.src = url;
+        });
 
         // Simulation: Countdown Queue
         let currentPos = 1402;
