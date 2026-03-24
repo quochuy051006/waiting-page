@@ -48,7 +48,8 @@
             font-size: 0.9rem;
             color: #cfeef1;
         }
-        .progress-label { width:60px; text-align:center; opacity:0.9; }
+        .progress-label { width:60px; text-align:center; opacity:0.9; display:flex; align-items:center; gap:6px; justify-content:center; }
+        .label-icon { font-size:18px; line-height:1; }
         .progress-bar-wrap {
             position: relative;
             flex: 1;
@@ -196,12 +197,12 @@
         <h1>Your spot is secured!</h1>
         <div class="queue-number" id="queuePos">#1,402</div>
         <div class="progress-tracker" aria-hidden="false">
-            <div class="progress-label">Entrance</div>
+            <div class="progress-label"><span class="label-icon">🚪</span><span>Entrance</span></div>
             <div class="progress-bar-wrap" id="progressWrap">
                 <div class="progress-fill" id="progressFill"></div>
                 <div class="progress-icon" id="progressIcon">🎫</div>
             </div>
-            <div class="progress-label">Stage</div>
+            <div class="progress-label"><span>Stage</span><span class="label-icon">🎭</span></div>
             <div class="progress-percent" id="progressText">0% to the Stage</div>
         </div>
         <p>While you wait, design your own <strong>exclusive</strong> digital pass.</p>
@@ -314,8 +315,11 @@
         const progressIcon = document.getElementById('progressIcon');
         const progressText = document.getElementById('progressText');
 
-        // Queue logic: define initialQueue here (change if you want a different baseline, e.g., 1300)
-        const initialQueue = 1402; // set this constant to your queue start value
+        // Queue logic: initialQueue is randomized per page load for realism
+        // Change minQueue/maxQueue to control the random range (inclusive)
+        const minQueue = 1000;
+        const maxQueue = 1600;
+        const initialQueue = Math.floor(Math.random() * (maxQueue - minQueue + 1)) + minQueue;
         // Simulation interval in milliseconds — lower = faster
         const queueInterval = 1200; // adjust this value to make the fake queue move faster/slower
 
@@ -425,7 +429,8 @@
             progressText.textContent = `${pctRounded}% to the Stage`;
         }
 
-        // Initial render
+        // Initial render: update displayed queue number and tracker from randomized initialQueue
+        document.getElementById('queuePos').innerText = '#' + initialQueue.toLocaleString();
         updateQueueUI(initialQueue);
 
         // Fit to frame: scale image to cover ticket area
