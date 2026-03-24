@@ -6,17 +6,20 @@
     <title>VIP Ticket Studio | Waiting Room</title>
     <style>
         :root {
-            --accent-color: #7FFF00; /* Chartreuse brand */
-            --bg-dark: #66CC00; /* darker chartreuse-green background */
-            --glass-bg: rgba(255, 255, 255, 0.03);
+            --brand-green: #7FFF00; /* KKTIX green */
+            --accent-color: var(--brand-green);
+            --bg-dark: #121212; /* deep charcoal background */
+            --glass-bg: rgba(26, 26, 26, 0.95); /* main card glass */
             --glass-border: rgba(127,255,0,0.3);
             --neon-glow: rgba(127,255,0,0.4);
         }
 
         body {
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 8% 8%, rgba(127,255,0,0.05) 0%, transparent 20%),
-                              radial-gradient(circle at 92% 92%, rgba(127,255,0,0.05) 0%, transparent 20%);
+            /* Dark mode base with strong green top split */
+            background:
+                radial-gradient(circle at 10% 10%, rgba(127,255,0,0.1) 0%, transparent 18%),
+                radial-gradient(circle at 90% 10%, rgba(127,255,0,0.1) 0%, transparent 18%),
+                linear-gradient(to bottom, rgba(127,255,0,0.4) 0%, rgba(127,255,0,0.24) 18%, rgba(127,255,0,0.12) 28%, rgba(15,15,15,0.92) 35%, var(--bg-dark) 100%);
             color: #ffffff;
             font-family: 'Inter', -apple-system, sans-serif;
             display: flex;
@@ -108,6 +111,92 @@
             box-shadow: 0 8px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
             border: 1px solid var(--glass-border);
             backdrop-filter: blur(8px) saturate(120%);
+        }
+
+        /* Perforation edges (ticket stub) */
+        .perforation {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 44px;
+            pointer-events: none;
+            z-index: 0;
+            display: block;
+            opacity: 0.18;
+        }
+        .perforation-left { left: 6px; }
+        .perforation-right { right: 6px; }
+        .perforation-left::before,
+        .perforation-right::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(to bottom, transparent 0 10px, rgba(127,255,0,0.8) 10px 12px, transparent 12px 24px);
+            filter: blur(0.2px) drop-shadow(0 0 10px rgba(127,255,0,0.35));
+        }
+        .perforation-left::after,
+        .perforation-right::after {
+            content: '';
+            position: absolute;
+            inset: 0 12px;
+            background: linear-gradient(to bottom, transparent 0%, rgba(127,255,0,0.24) 18%, rgba(127,255,0,0.06) 50%, rgba(127,255,0,0.24) 82%, transparent 100%);
+            box-shadow: 0 0 28px rgba(127,255,0,0.18);
+        }
+
+        /* Soundwave / abstract corner SVG decorations */
+        .soundwave {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            opacity: 0.18; /* clearly visible but not overwhelming */
+            z-index: 0;
+            fill: var(--brand-green);
+            filter: drop-shadow(0 0 14px rgba(127,255,0,0.25));
+        }
+        .soundwave.top-left { left: 0; top: 0; transform: translate(-16%, -16%); }
+        .soundwave.bottom-right { right: 0; bottom: 0; transform: translate(16%, 16%) rotate(180deg); }
+
+        /* Spotlight effects for the side dead space */
+        .spotlight {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(circle, rgba(127,255,0,0.1) 0%, rgba(127,255,0,0.05) 30%, transparent 70%);
+            filter: blur(6px);
+        }
+        .spotlight.top-left { left: -70px; top: -60px; }
+        .spotlight.top-right { right: -70px; top: -60px; }
+
+        /* Main centered glass card that holds the content */
+        .main-card {
+            position: relative;
+            z-index: 2;
+            width: 940px;
+            max-width: calc(100% - 40px);
+            margin: 0 auto;
+            margin-top: 6vh;
+            background: var(--glass-bg); /* rgba(26,26,26,0.95) per spec */
+            border: 2px solid var(--brand-green);
+            border-radius: 16px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            backdrop-filter: blur(12px) saturate(120%);
+            box-shadow:
+                0 10px 30px rgba(0,0,0,0.5),
+                0 0 15px rgba(127,255,0,0.1),
+                inset 0 0 40px rgba(127,255,0,0.2);
+            color: #ffffff; /* ensure contrast inside card */
+        }
+
+        /* Ensure progress and ticket studio are visually elevated inside the card */
+        .main-card .status-header, .main-card .ticket-container, .main-card .editor-panel {
+            z-index: 3;
+            position: relative;
         }
 
         /* Template styles */
@@ -220,6 +309,21 @@
 </head>
 <body>
 
+    <div class="spotlight top-left" aria-hidden="true"></div>
+    <div class="spotlight top-right" aria-hidden="true"></div>
+    <div class="perforation perforation-left" aria-hidden="true"></div>
+    <div class="perforation perforation-right" aria-hidden="true"></div>
+
+    <!-- Corner decorative soundwave SVGs -->
+    <svg class="soundwave top-left" viewBox="0 0 200 200" aria-hidden="true">
+        <path d="M0,100 C30,40 70,160 100,100 C130,40 170,160 200,100 L200 0 L0 0 Z" />
+    </svg>
+    <svg class="soundwave bottom-right" viewBox="0 0 200 200" aria-hidden="true">
+        <path d="M0,100 C30,40 70,160 100,100 C130,40 170,160 200,100 L200 0 L0 0 Z" />
+    </svg>
+
+    <div class="main-card">
+
     <div class="status-header">
         <h1>Your spot is secured!</h1>
         <div class="queue-number" id="queuePos">#1,402</div>
@@ -318,6 +422,8 @@
             Download Digital Pass
         </button>
     </div>
+
+    </div> <!-- end main-card -->
 
     <script>
         // Elements
