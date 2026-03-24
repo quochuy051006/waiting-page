@@ -36,6 +36,55 @@
             text-shadow: 0 0 20px rgba(0, 206, 201, 0.4);
         }
 
+        /* Mini horizontal progress tracker */
+        .progress-tracker {
+            width: 520px;
+            max-width: calc(100% - 40px);
+            height: 36px;
+            margin: 12px auto 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            color: #cfeef1;
+        }
+        .progress-label { width:60px; text-align:center; opacity:0.9; }
+        .progress-bar-wrap {
+            position: relative;
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, rgba(0,236,201,0.9), rgba(0,200,255,0.9));
+            box-shadow: 0 6px 20px rgba(0,236,201,0.08);
+            transition: all 1s ease-in-out;
+        }
+        .progress-icon {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            left: 0%;
+            transition: all 1s ease-in-out;
+            font-size: 18px;
+            z-index: 3;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        }
+        .progress-percent {
+            width:120px;
+            text-align:left;
+            opacity:0.95;
+            font-weight:700;
+            color: var(--accent-color);
+        }
+
         /* The Ticket Canvas */
         .ticket-container {
             position: relative;
@@ -146,6 +195,15 @@
     <div class="status-header">
         <h1>Your spot is secured!</h1>
         <div class="queue-number" id="queuePos">#1,402</div>
+        <div class="progress-tracker" aria-hidden="false">
+            <div class="progress-label">Entrance</div>
+            <div class="progress-bar-wrap" id="progressWrap">
+                <div class="progress-fill" id="progressFill"></div>
+                <div class="progress-icon" id="progressIcon">🎫</div>
+            </div>
+            <div class="progress-label">Stage</div>
+            <div class="progress-percent" id="progressText">0% to the Stage</div>
+        </div>
         <p>While you wait, design your own <strong>exclusive</strong> digital pass.</p>
     </div>
 
@@ -251,6 +309,15 @@
         const ticketWidget = document.getElementById('ticketWidget');
         const ticketOverlay = document.querySelector('.ticket-overlay');
         const downloadBtn = document.getElementById('downloadBtn');
+        // Progress tracker elements
+        const progressFill = document.getElementById('progressFill');
+        const progressIcon = document.getElementById('progressIcon');
+        const progressText = document.getElementById('progressText');
+
+        // Queue logic: define initialQueue here (change if you want a different baseline, e.g., 1300)
+        const initialQueue = 1402; // set this constant to your queue start value
+        // Simulation interval in milliseconds — lower = faster
+        const queueInterval = 1200; // adjust this value to make the fake queue move faster/slower
 
         // Handle Background Image Upload
         imageLoader.addEventListener('change', function(e) {
@@ -343,6 +410,24 @@
             img.src = url;
         });
 
+        /**
+         * updateQueueUI(currentQueue)
+         * - currentQueue: integer current queue position
+         * Calculates percentage progress from left (Entrance) -> right (Stage)
+         * Formula: ((initialQueue - currentQueue) / initialQueue) * 100
+         */
+        function updateQueueUI(currentQueue) {
+            const pct = Math.max(0, Math.min(100, ((initialQueue - currentQueue) / initialQueue) * 100));
+            const pctRounded = Math.round(pct);
+            progressFill.style.width = pct + '%';
+            // Move icon along the bar using percentage of bar width
+            progressIcon.style.left = `calc(${pct}% )`;
+            progressText.textContent = `${pctRounded}% to the Stage`;
+        }
+
+        // Initial render
+        updateQueueUI(initialQueue);
+
         // Fit to frame: scale image to cover ticket area
         const fitBtn = document.getElementById('fitBtn');
         fitBtn.addEventListener('click', () => {
@@ -363,13 +448,15 @@
         });
 
         // Simulation: Countdown Queue
-        let currentPos = 1402;
+        let currentPos = initialQueue;
         setInterval(() => {
             if (currentPos > 1) {
                 currentPos--;
                 document.getElementById('queuePos').innerText = '#' + currentPos.toLocaleString();
+                // update the mini progress tracker
+                updateQueueUI(currentPos);
             }
-        }, 5000);
+        }, queueInterval);
     </script>
 </body>
 </html>
